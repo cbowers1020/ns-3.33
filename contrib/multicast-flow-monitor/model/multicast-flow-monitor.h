@@ -69,7 +69,11 @@ public:
 
 		/// Contains the last measured delay of a packet
 		/// It is stored to measure the packet's Jitter
-		std::map<uint32_t, Time>     lastDelay;
+		std::map<uint32_t, std::map<uint32_t, Time>>     packetDelay;
+
+		std::map<uint32_t, std::map<uint32_t, uint32_t>> numHops;
+
+		std::map<uint32_t, Time> lastDelay;
 
 		/// Total number of transmitted bytes for the flow
 		uint64_t txBytes;
@@ -92,7 +96,7 @@ public:
 
 		/// Contains the number of times a packet has been reportedly
 		/// forwarded, summed for all received packets in the flow
-		uint32_t timesForwarded;
+		std::map<uint32_t, uint32_t> timesForwarded;
 
 		/// Histogram of the packet delays
 		// Histogram delayHistogram;
@@ -166,7 +170,7 @@ public:
 	/// \param flowId flow identification
 	/// \param packetId Packet ID
 	/// \param packetSize packet size
-	void ReportFirstTx (Ptr<MulticastFlowProbe> probe, MulticastFlowId flowId, MulticastFlowPacketId packetId, uint32_t packetSize, uint32_t txNodeId, std::vector<uint32_t> groupNodeIds);
+	void ReportFirstTx (Ptr<MulticastFlowProbe> probe, MulticastFlowId flowId, MulticastFlowPacketId packetId, uint32_t packetSize, uint32_t txNodeId, uint32_t ttl, std::vector<uint32_t> groupNodeIds);
 
 	/// FlowProbe implementations are supposed to call this method to
 	/// report that a known packet is being forwarded.
@@ -182,7 +186,7 @@ public:
 	/// \param flowId flow identification
 	/// \param packetId Packet ID
 	/// \param packetSize packet size
-	void ReportRx (Ptr<MulticastFlowProbe> probe, MulticastFlowId flowId, MulticastFlowPacketId packetId, uint32_t packetSize, uint32_t nodeId);
+	void ReportRx (Ptr<MulticastFlowProbe> probe, MulticastFlowId flowId, MulticastFlowPacketId packetId, uint32_t packetSize, uint32_t nodeId, uint32_t ttl);
 
 	/// FlowProbe implementations are supposed to call this method to
 	/// report that a known packet is being dropped due to some reason.
@@ -243,7 +247,9 @@ private:
 	struct TrackedPacket
 	{
 		Time firstSeenTime; //!< absolute time when the packet was first seen by a probe
+		uint32_t initial_ttl;
 		std::map<uint32_t, Time> lastSeenTime; //!< absolute time when the packet was last seen by a probe
+		uint32_t nodesSeen;
 		uint32_t timesForwarded; //!< number of times the packet was reportedly forwarded
 	};
 

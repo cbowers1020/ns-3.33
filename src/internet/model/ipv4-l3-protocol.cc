@@ -803,7 +803,14 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
       // 1b) with a valid gateway
       NS_LOG_LOGIC ("Ipv4L3Protocol::Send case 1b:  passed in with route and valid gateway");
       int32_t interface = GetInterfaceForDevice (route->GetOutputDevice ());
+      // if (m_enableDpd && ipHeader.GetDestination ().IsMulticast () && UpdateDuplicate (packet, ipHeader))
+      // {
+      //   NS_LOG_LOGIC ("Dropping received packet -- duplicate.");
+      //   m_dropTrace (ipHeader, packet, DROP_DUPLICATE, m_node->GetObject<Ipv4> (), interface);
+      //   return;
+      // }
       m_sendOutgoingTrace (ipHeader, packet, interface);
+      UpdateDuplicate (packet, ipHeader);
       SendRealOut (route, packet->Copy (), ipHeader);
       return; 
     }

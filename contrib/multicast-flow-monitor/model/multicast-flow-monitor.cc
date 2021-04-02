@@ -96,17 +96,19 @@ MulticastFlowMonitor::GetStatsForMulticastFlow (MulticastFlowId flowId)
   if (iter == m_multicastFlowStats.end ())
     {
       MulticastFlowMonitor::MulticastFlowStats &ref = m_multicastFlowStats[flowId];
-      ref.delaySum.clear();
-      ref.jitterSum.clear();
-      ref.lastDelay.clear();
+      ref.delaySum.clear ();
+      ref.jitterSum.clear ();
+      ref.lastDelay.clear ();
       ref.txBytes = 0;
-      ref.rxBytes.clear();
+      ref.rxBytes.clear ();
       ref.txPackets = 0;
-      ref.rxPackets.clear();
-      ref.lostPackets.clear();
-      ref.timesForwarded = 0;
-      ref.dupsDropped.clear();
-      ref.groupNodeIds.clear();
+      ref.rxPackets.clear ();
+      ref.lostPackets.clear ();
+      ref.timesForwarded.clear ();
+      ref.dupsDropped.clear ();
+      ref.groupNodeIds.clear ();
+      ref.numHops.clear ();
+      ref.packetDelay.clear ();
       // ref.delayHistogram.SetDefaultBinWidth (m_delayBinWidth);
       // ref.jitterHistogram.SetDefaultBinWidth (m_jitterBinWidth);
       // ref.packetSizeHistogram.SetDefaultBinWidth (m_packetSizeBinWidth);
@@ -128,7 +130,6 @@ MulticastFlowMonitor::GetStatsForMulticastFlow (MulticastFlowId flowId, std::vec
 	if (iter == m_multicastFlowStats.end ())
 	{
 		MulticastFlowMonitor::MulticastFlowStats &ref = m_multicastFlowStats[flowId];
-		ref.timesForwarded = 0;
 		ref.txPackets = 0;
 		ref.txBytes = 0;
 		ref.groupNodeIds = groupNodes;
@@ -139,6 +140,7 @@ MulticastFlowMonitor::GetStatsForMulticastFlow (MulticastFlowId flowId, std::vec
 			ref.jitterSum[*(it)] = Seconds(0);
 			ref.lastDelay[*(it)] = Seconds(0);
 
+			ref.timesForwarded[*(it)] = 0;
 			ref.rxBytes[*(it)] = 0;
 
 			ref.rxPackets[*(it)] = 0;
@@ -164,6 +166,7 @@ MulticastFlowMonitor::ReportFirstTx (Ptr<MulticastFlowProbe> probe,
 									uint32_t packetId, 
 									uint32_t packetSize,
 									uint32_t txNodeId,
+									uint32_t ttl,
 									std::vector<uint32_t> groupNodeIds)
 {
 	NS_LOG_FUNCTION (this << probe << flowId << packetId << packetSize);
@@ -177,12 +180,19 @@ MulticastFlowMonitor::ReportFirstTx (Ptr<MulticastFlowProbe> probe,
 	tracked.firstSeenTime = now;
 	tracked.lastSeenTime[txNodeId] = tracked.firstSeenTime;
 	tracked.timesForwarded = 0;
+	tracked.nodesSeen = 1;
 	NS_LOG_DEBUG ("ReportFirstTx: adding tracked packet (flowId=" << flowId << ", packetId=" << packetId
 	                                                            << ").");
 
 	probe->AddPacketStats (flowId, packetSize, Seconds (0), txNodeId);
 	MulticastFlowStats &stats = GetStatsForMulticastFlow (flowId, groupNodeIds);
 	stats.groupNodeIds = groupNodeIds;
+	std::vector<uint32_t>::iterator it;
+	for(it = stats.groupNodeIds.begin(); it != stats.groupNodeIds.end(); it++)
+	{
+		stats.packetDelay[*(it)][packetId] = Seconds(0);
+		stats.numHops[*(it)][packetId] = ttl;
+	}
 	stats.txBytes += packetSize;
 	stats.txPackets++;
 	if (stats.txPackets == 1)
@@ -215,6 +225,7 @@ MulticastFlowMonitor::ReportForwarding (Ptr<MulticastFlowProbe> probe,
 	}
 
 	tracked->second.timesForwarded++;
+	tracked->second.nodesSeen++;
 	tracked->second.lastSeenTime[nodeId] = Simulator::Now ();
 
 	Time delay = (Simulator::Now () - tracked->second.firstSeenTime);
@@ -222,7 +233,7 @@ MulticastFlowMonitor::ReportForwarding (Ptr<MulticastFlowProbe> probe,
 }
 
 void
-MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, uint32_t packetId, uint32_t packetSize, uint32_t nodeId)
+MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, uint32_t packetId, uint32_t packetSize, uint32_t nodeId, uint32_t ttl)
 {
 	NS_LOG_FUNCTION (this << probe << flowId << packetId << packetSize);
 	if (!m_enabled)
@@ -243,6 +254,10 @@ MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, 
 	probe->AddPacketStats (flowId, packetSize, delay, nodeId);
 
 	MulticastFlowStats &stats = GetStatsForMulticastFlow (flowId);
+	// if(stats.groupDelivered[nodeId][packetId])
+	// {
+	// 	return;
+	// }
 	stats.delaySum[nodeId] += delay;
 	// stats.delayHistogram.AddValue (delay.GetSeconds ());
 	if (stats.rxPackets[nodeId] > 0 )
@@ -259,6 +274,8 @@ MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, 
 			// stats.jitterHistogram.AddValue (-jitter.GetSeconds ());
 		}
 	}
+	stats.packetDelay[nodeId][packetId] = delay;
+	stats.numHops[nodeId][packetId] = stats.numHops[nodeId][packetId] - ttl;
 	stats.lastDelay[nodeId] = delay;
 
 	stats.rxBytes[nodeId] += packetSize;
@@ -281,8 +298,9 @@ MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, 
 	// 	}
 	// }
 	stats.timeLastRxPacket[nodeId] = now;
-	stats.timesForwarded += tracked->second.timesForwarded;
-	// std::cout << "timesForwarded = " << stats.timesForwarded << std::endl;
+	stats.timesForwarded[nodeId] += tracked->second.timesForwarded;
+	// std::cout << "timesForwarded = " << tracked->second.timesForwarded << std::endl;
+	// std::cout << "nodesSeen = " << tracked->second.nodesSeen << std::endl;
 
 	stats.groupDelivered[nodeId][packetId] = true;
 
@@ -303,7 +321,6 @@ MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, 
 
 	if(all_del) // all group nodes got packet delivered
 	{
-
 		NS_LOG_DEBUG ("ReportRx: removing tracked packet (flowId="
 		            << flowId << ", packetId=" << packetId << ").");
 

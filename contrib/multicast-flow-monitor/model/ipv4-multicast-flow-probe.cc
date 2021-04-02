@@ -321,7 +321,8 @@ Ipv4MulticastFlowProbe::SendOutgoingLogger (std::string nodeId,
         uint32_t size = (ipPayload->GetSize () + ipHeader.GetSerializedSize ());
         NS_LOG_DEBUG ("ReportFirstTx ("<<this<<", "<<flowId<<", "<<packetId<<", "<<size<<"); "
                                      << ipHeader << *ipPayload);
-        m_multicastFlowMonitor->ReportFirstTx (this, flowId, packetId, size, txNodeId, m_flowGroupNodes[ipHeader.GetDestination ()]);
+        uint32_t ttl = ipHeader.GetTtl ();
+        m_multicastFlowMonitor->ReportFirstTx (this, flowId, packetId, size, txNodeId, ttl, m_flowGroupNodes[ipHeader.GetDestination ()]);
 
         // tag the packet with the flow id and packet id, so that the packet can be identified even
         // when Ipv4Header is not accessible at some non-IPv4 protocol layer
@@ -382,7 +383,9 @@ Ipv4MulticastFlowProbe::ForwardUpLogger (std::string nodeId, const Ipv4Header &i
         uint32_t size = (ipPayload->GetSize () + ipHeader.GetSerializedSize ());
         NS_LOG_DEBUG ("ReportRx ("<<this<<", "<<flowId<<", "<<packetId<<", "<<size<<"); "
                                      << ipHeader << *ipPayload);
-        m_multicastFlowMonitor->ReportRx (this, flowId, packetId, size, rxNodeId);
+        uint32_t ttl = ipHeader.GetTtl ();
+        // std::cout << "TTL = " << ttl << std::endl;
+        m_multicastFlowMonitor->ReportRx (this, flowId, packetId, size, rxNodeId, ttl);
     }
 }
 
