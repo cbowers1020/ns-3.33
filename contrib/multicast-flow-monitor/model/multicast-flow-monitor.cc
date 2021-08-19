@@ -104,6 +104,7 @@ MulticastFlowMonitor::GetStatsForMulticastFlow (MulticastFlowId flowId)
       ref.txPackets = 0;
       ref.rxPackets.clear ();
       ref.lostPackets.clear ();
+      ref.nodeLostPackets.clear ();
       ref.timesForwarded.clear ();
       ref.dupsDropped.clear ();
       ref.groupNodeIds.clear ();
@@ -136,8 +137,8 @@ MulticastFlowMonitor::GetStatsForMulticastFlow (MulticastFlowId flowId, std::vec
 		std::vector<uint32_t>::iterator it;
 		for(it = ref.groupNodeIds.begin (); it != ref.groupNodeIds.end (); it++)
 		{
-			ref.delaySum[*(it)] = Seconds(0);
-			ref.jitterSum[*(it)] = Seconds(0);
+			// ref.delaySum[*(it)] = Seconds(0);
+			// ref.jitterSum[*(it)] = Seconds(0);
 			ref.lastDelay[*(it)] = Seconds(0);
 
 			ref.timesForwarded[*(it)] = 0;
@@ -178,9 +179,10 @@ MulticastFlowMonitor::ReportFirstTx (Ptr<MulticastFlowProbe> probe,
 	Time now = Simulator::Now ();
 	TrackedPacket &tracked = m_trackedPackets[std::make_pair (flowId, packetId)];
 	tracked.firstSeenTime = now;
-	tracked.lastSeenTime[txNodeId] = tracked.firstSeenTime;
+	tracked.lastSeenTime = tracked.firstSeenTime;
 	tracked.timesForwarded = 0;
 	tracked.nodesSeen = 1;
+	tracked.initial_ttl = ttl;
 	NS_LOG_DEBUG ("ReportFirstTx: adding tracked packet (flowId=" << flowId << ", packetId=" << packetId
 	                                                            << ").");
 
@@ -188,11 +190,11 @@ MulticastFlowMonitor::ReportFirstTx (Ptr<MulticastFlowProbe> probe,
 	MulticastFlowStats &stats = GetStatsForMulticastFlow (flowId, groupNodeIds);
 	stats.groupNodeIds = groupNodeIds;
 	std::vector<uint32_t>::iterator it;
-	for(it = stats.groupNodeIds.begin(); it != stats.groupNodeIds.end(); it++)
-	{
-		stats.packetDelay[*(it)][packetId] = Seconds(0);
-		stats.numHops[*(it)][packetId] = ttl;
-	}
+	// for(it = stats.groupNodeIds.begin(); it != stats.groupNodeIds.end(); it++)
+	// {
+	// 	stats.packetDelay[*(it)][packetId] = Seconds(0);
+	// 	stats.numHops[*(it)][packetId] = 0;
+	// }
 	stats.txBytes += packetSize;
 	stats.txPackets++;
 	if (stats.txPackets == 1)
@@ -226,7 +228,7 @@ MulticastFlowMonitor::ReportForwarding (Ptr<MulticastFlowProbe> probe,
 
 	tracked->second.timesForwarded++;
 	tracked->second.nodesSeen++;
-	tracked->second.lastSeenTime[nodeId] = Simulator::Now ();
+	tracked->second.lastSeenTime = Simulator::Now ();
 
 	Time delay = (Simulator::Now () - tracked->second.firstSeenTime);
 	probe->AddPacketStats (flowId, packetSize, delay, nodeId);
@@ -275,7 +277,7 @@ MulticastFlowMonitor::ReportRx (Ptr<MulticastFlowProbe> probe, uint32_t flowId, 
 		}
 	}
 	stats.packetDelay[nodeId][packetId] = delay;
-	stats.numHops[nodeId][packetId] = stats.numHops[nodeId][packetId] - ttl;
+	stats.numHops[nodeId][packetId] = tracked->second.initial_ttl - (ttl - 1);
 	stats.lastDelay[nodeId] = delay;
 
 	stats.rxBytes[nodeId] += packetSize;
@@ -415,30 +417,39 @@ MulticastFlowMonitor::CheckForLostPackets (Time maxDelay)
   for (TrackedPacketMap::iterator iter = m_trackedPackets.begin ();
        iter != m_trackedPackets.end (); )
 	{
-		std::map<uint32_t, Time>::iterator pk_it;
+		uint32_t flow_id = iter->first.first;
+		uint32_t p_id = iter->first.second;
 		bool all_lost = true;
-		for(pk_it = iter->second.lastSeenTime.begin();
-			pk_it != iter->second.lastSeenTime.end(); pk_it++)
+		if (now - iter->second.lastSeenTime >= maxDelay)
 		{
-			//node
-			pk_it->first;
-			//time
-			pk_it->second;
-			if(now - pk_it->second >= maxDelay)
+			MulticastFlowStatsContainerI flow = m_multicastFlowStats.find (flow_id);
+			NS_ASSERT (flow != m_multicastFlowStats.end ());
+			std::vector<uint32_t>::iterator it;
+			for(it = flow->second.groupNodeIds.begin(); it != flow->second.groupNodeIds.end(); it++)
 			{
-				// packet is considered lost, add it to the loss statistics
-				MulticastFlowStatsContainerI flow = m_multicastFlowStats.find (iter->first.first);
-				NS_ASSERT (flow != m_multicastFlowStats.end ());
-				flow->second.lostPackets[pk_it->first]++;
+				if(flow->second.groupDelivered[*(it)][p_id])
+				{
+					all_lost = false;
+					continue;
+				}
+				else if (flow->second.nodeLostPackets[*(it)][p_id])
+				{
+					continue;
+				}
+				else
+				{
+					flow->second.nodeLostPackets[*(it)][p_id] = true;
+					flow->second.lostPackets[*(it)]++;
+				}
+			}
+			if (all_lost)
+			{
+				m_trackedPackets.erase (iter++);	
 			}
 			else
 			{
-				all_lost = false;
+				iter++;
 			}
-		}
-		if (all_lost)
-		{
-			m_trackedPackets.erase (iter++);	
 		}
 		else
 		{

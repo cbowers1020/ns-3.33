@@ -91,6 +91,8 @@ public:
 		/// lost, although this value can be easily configured in runtime
 		std::map<uint32_t, uint32_t> lostPackets;
 
+		std::map<uint32_t, std::map<uint32_t, bool>> nodeLostPackets;
+
 		// duplicates dropped
 		std::map<uint32_t, uint32_t> dupsDropped;
 
@@ -248,7 +250,7 @@ private:
 	{
 		Time firstSeenTime; //!< absolute time when the packet was first seen by a probe
 		uint32_t initial_ttl;
-		std::map<uint32_t, Time> lastSeenTime; //!< absolute time when the packet was last seen by a probe
+		Time lastSeenTime; //!< absolute time when the packet was last seen by a probe
 		uint32_t nodesSeen;
 		uint32_t timesForwarded; //!< number of times the packet was reportedly forwarded
 	};
