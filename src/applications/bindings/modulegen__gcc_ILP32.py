@@ -12081,6 +12081,14 @@ def register_Ns3UdpServer_methods(root_module, cls):
     cls.add_method('SetPacketWindowSize', 
                    'void', 
                    [param('uint16_t', 'size')])
+    ## udp-server.h (module 'applications'): void ns3::UdpServer::SetRxCallback(ns3::Callback<void, ns3::Ptr<const ns3::Packet>, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty> callback) [member function]
+    cls.add_method('SetRxCallback', 
+                   'void', 
+                   [param('ns3::Callback< void, ns3::Ptr< ns3::Packet const >, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty >', 'callback')])
+    ## udp-server.h (module 'applications'): void ns3::UdpServer::SetRxWithAddressesCallback(ns3::Callback<void, ns3::Ptr<const ns3::Packet>, const ns3::Address &, const ns3::Address &, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty> callback) [member function]
+    cls.add_method('SetRxWithAddressesCallback', 
+                   'void', 
+                   [param('ns3::Callback< void, ns3::Ptr< ns3::Packet const >, ns3::Address const &, ns3::Address const &, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty >', 'callback')])
     ## udp-server.h (module 'applications'): void ns3::UdpServer::DoDispose() [member function]
     cls.add_method('DoDispose', 
                    'void', 

@@ -274,9 +274,6 @@ ArpL3Protocol::Receive (Ptr<NetDevice> device, Ptr<const Packet> p, uint16_t pro
       NS_LOG_LOGIC ("node="<<m_node->GetId ()<<", got request from " <<
                     arp.GetSourceIpv4Address () << " for unknown address " <<
                     arp.GetDestinationIpv4Address () << " -- drop");
-      // std::cout << "node="<<m_node->GetId ()<<", got request from " <<
-      //               arp.GetSourceIpv4Address () << " for unknown address " <<
-      //               arp.GetDestinationIpv4Address () << " -- drop" << std::endl;
     }
 }
 

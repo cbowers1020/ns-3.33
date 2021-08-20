@@ -250,8 +250,11 @@ public:
    *        This callback is intended to notify a socket that would
    *        have been blocked in a blocking socket model that data
    *        is available to be read.
+   * \param receivedData Callback for the event that data is received
+   *        from the underlying transport protocol.  This callback
+   *        is passed a pointer to the socket.
    */
-  void SetRecvCallback (Callback<void, Ptr<Socket> >);
+  void SetRecvCallback (Callback<void, Ptr<Socket> > receivedData);
   /** 
    * \brief Allocate a local endpoint for this socket.
    * \param address the address to try to allocate
