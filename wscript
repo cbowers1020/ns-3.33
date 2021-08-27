@@ -1067,6 +1067,44 @@ def add_scratch_programs(bld):
     except OSError:
         return
 
+
+
+def add_adaptnet_programs(bld):
+    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES'] + bld.env['NS3_ENABLED_CONTRIBUTED_MODULES']]
+    # print(all_modules)
+
+    try:
+        # for filename in os.listdir("ns3_examples"):
+        #     if filename.startswith('.') or filename == 'CVS' or filename == 'topologies' or filename == 'utilities':
+        #         continue
+        #     if filename.endswith(".cc"):
+        #         name = filename[:-len(".cc")]
+        #         obj = bld.create_ns3_program(name, all_modules)
+        #         obj.path = obj.path.find_dir("ns3_examples")
+        #         obj.source = filename
+        #         obj.target = name
+        #         obj.name = obj.target
+        #         obj.install_path = None
+        for dir in os.listdir('ns3_examples'):
+            if dir.startswith('.') or dir == 'CVS' or dir == 'topologies' or dir == 'utilities' or dir == 'python' or dir == 'move_to_ns3_dir':
+                continue
+            if dir.endswith(".cc"):
+                name = dir[:-len(".cc")]
+                obj = bld.create_ns3_program(name, all_modules)
+                obj.path = obj.path.find_dir("ns3_examples")
+                obj.source = dir
+                obj.target = name
+                obj.name = obj.target
+                obj.install_path = None
+            # elif os.path.isdir(os.path.join('ns3_examples', dir)):
+            #     print(dir)
+            #     print(os.path.join('ns3_examples', dir))
+            #     bld.recurse(os.path.join('ns3_examples', dir))
+    except OSError:
+        return
+
+
+
 def _get_all_task_gen(self):
     for group in self.groups:
         for taskgen in group:
@@ -1213,6 +1251,7 @@ def build(bld):
 
     add_examples_programs(bld)
     add_scratch_programs(bld)
+    add_adaptnet_programs(bld)
 
     if env['NS3_ENABLED_MODULES'] or env['NS3_ENABLED_CONTRIBUTED_MODULES']:
         modules = env['NS3_ENABLED_MODULES']
