@@ -810,7 +810,10 @@ Ipv4L3Protocol::Send (Ptr<Packet> packet,
       //   return;
       // }
       m_sendOutgoingTrace (ipHeader, packet, interface);
-      UpdateDuplicate (packet, ipHeader);
+      if (m_enableDpd && ipHeader.GetDestination ().IsMulticast ())
+        {
+          UpdateDuplicate (packet, ipHeader);
+        }
       SendRealOut (route, packet->Copy (), ipHeader);
       return; 
     }

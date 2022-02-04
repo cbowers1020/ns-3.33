@@ -90,7 +90,7 @@ wifiStaNodes.Create(nWifi)
 wifiApNode = p2pNodes.Get(0)
 
 channel = ns.wifi.YansWifiChannelHelper.Default()
-phy = ns.wifi.YansWifiPhyHelper.Default()
+phy = ns.wifi.YansWifiPhyHelper()
 phy.SetChannel(channel.Create())
 
 wifi = ns.wifi.WifiHelper()

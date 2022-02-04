@@ -32,8 +32,8 @@ modules_enabled  = ['all_modules']
 examples_enabled = False
 tests_enabled    = False
 
-# GCC minimum version requirements for C++11 support
-gcc_min_version = (4, 9, 2)
+# GCC minimum version requirements for C++17 support
+gcc_min_version = (7, 0, 0)
 
 # Bug 2181:  clang warnings about unused local typedefs and potentially
 # evaluated expressions affecting darwin clang/LLVM version 7.0.0 (Xcode 7)
@@ -735,7 +735,7 @@ def configure(conf):
         cxx_standard = Options.options.cxx_standard
         # No need to change CXXFLAGS
     elif not cxx_standard and not Options.options.cxx_standard:
-        cxx_standard = "-std=c++11"
+        cxx_standard = "-std=c++17"
         env.append_value('CXXFLAGS', cxx_standard)
 
     if not conf.check_compilation_flag(cxx_standard):
@@ -1085,17 +1085,33 @@ def add_adaptnet_programs(bld):
         #         obj.target = name
         #         obj.name = obj.target
         #         obj.install_path = None
-        for dir in os.listdir('ns3_examples'):
-            if dir.startswith('.') or dir == 'CVS' or dir == 'topologies' or dir == 'utilities' or dir == 'python' or dir == 'move_to_ns3_dir':
-                continue
-            if dir.endswith(".cc"):
-                name = dir[:-len(".cc")]
-                obj = bld.create_ns3_program(name, all_modules)
-                obj.path = obj.path.find_dir("ns3_examples")
-                obj.source = dir
-                obj.target = name
-                obj.name = obj.target
-                obj.install_path = None
+        for root, dir, files in os.walk('ns3_examples'):
+            for f in files:
+                if not f.endswith(".cc") or 'tests' == os.path.basename(root) or 'topologies' in root or 'CVS' in root or 'utilities' in root or 'python' == os.path.basename(root) or 'move_to_ns3_dir' in root or 'motion_examples' in root:
+                    continue
+                else:
+                    name = f[:-len(".cc")]
+                    # print(name)
+                    # print(root)
+                    obj = bld.create_ns3_program(name, all_modules)
+                    obj.path = obj.path.find_dir(root)
+                    obj.source = f
+                    obj.target = name
+                    obj.name = obj.target
+                    obj.install_path = None
+        # for dir in os.listdir('ns3_examples'):
+        #     print("dir = " + str(dir))
+        #     if dir.startswith('.') or dir == 'CVS' or dir == 'topologies' or dir == 'utilities' or dir == 'python' or dir == 'move_to_ns3_dir' or dir == "motion_examples":
+        #         continue
+        #     if dir.endswith(".cc"):
+        #         name = dir[:-len(".cc")]
+        #         print(name)
+        #         obj = bld.create_ns3_program(name, all_modules)
+        #         obj.path = obj.path.find_dir("ns3_examples")
+        #         obj.source = dir
+        #         obj.target = name
+        #         obj.name = obj.target
+        #         obj.install_path = None
             # elif os.path.isdir(os.path.join('ns3_examples', dir)):
             #     print(dir)
             #     print(os.path.join('ns3_examples', dir))

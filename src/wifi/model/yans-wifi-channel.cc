@@ -131,7 +131,7 @@ YansWifiChannel::Receive (Ptr<YansWifiPhy> phy, Ptr<WifiPpdu> ppdu, double rxPow
   if ((rxPowerDbm + phy->GetRxGain ()) < phy->GetRxSensitivity ())
     {
       NS_LOG_INFO ("Received signal too weak to process: " << rxPowerDbm << " dBm");
-      std::cout << "Received signal too weak to process: " << rxPowerDbm << " dBm" << std::endl;
+      // std::cout << "Received signal too weak to process: " << rxPowerDbm << " dBm" << std::endl;
       return;
     }
   RxPowerWattPerChannelBand rxPowerW;
