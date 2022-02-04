@@ -465,6 +465,52 @@ Ipv4StaticRouting::GetMetric (uint32_t index) const
   // quiet compiler.
   return 0;
 }
+
+// bool
+// Ipv4StaticRouting::RemoveMulticastRoute (Ipv4Address origin,
+//                                          Ipv4Address group,
+//                                          uint32_t inputInterface)
+// {
+//   NS_LOG_FUNCTION (this << origin << " " << group << " " << inputInterface);
+//   for (MulticastRoutesI i = m_multicastRoutes.begin (); 
+//        i != m_multicastRoutes.end (); 
+//        i++) 
+//     {
+//       Ipv4MulticastRoutingTableEntry *route = *i;
+//       if (origin == route->GetOrigin () &&
+//           group == route->GetGroup () &&
+//           inputInterface == route->GetInputInterface ())
+//         {
+//           delete *i;
+//           m_multicastRoutes.erase (i);
+//           return true;
+//         }
+//     }
+//   return false;
+// }
+
+bool
+Ipv4StaticRouting::RemoveRoute (Ipv4Address destination,
+                                Ipv4Address gateway,
+                                uint32_t inputInterface)
+{
+  NS_LOG_FUNCTION (this << destination << " " << gateway << " " << inputInterface);
+  for (NetworkRoutesI i = m_networkRoutes.begin ();
+      i != m_networkRoutes.end ();
+      i++)
+  {
+    Ipv4RoutingTableEntry *route = i->first;
+    if(destination == route->GetDest () && inputInterface == route->GetInterface ()
+      && gateway == route->GetGateway ())
+    {
+      delete i->first;
+      m_networkRoutes.erase (i);
+      return true;
+    }
+  }
+  return false;
+}
+
 void 
 Ipv4StaticRouting::RemoveRoute (uint32_t index)
 {

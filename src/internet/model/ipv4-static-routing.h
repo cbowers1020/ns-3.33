@@ -230,6 +230,8 @@ public:
  */
   void RemoveRoute (uint32_t i);
 
+  bool RemoveRoute (Ipv4Address destination, Ipv4Address gateway, uint32_t inputInterface);
+
 /**
  * \brief Add a multicast route to the static routing table.
  *
