@@ -57,7 +57,8 @@ void
 TimeStampTag::Deserialize (TagBuffer buf)
 {
   NS_LOG_FUNCTION (this << &buf);
-  m_timeStamp = Time ( NanoSeconds(buf.ReadU32 ()));
+  m_timeStamp = Time (NanoSeconds (buf.ReadU32 ()));
+  std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
 }
 void 
 TimeStampTag::Print (std::ostream &os) const
