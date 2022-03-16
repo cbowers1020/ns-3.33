@@ -51,13 +51,13 @@ void
 TimeStampTag::Serialize (TagBuffer buf) const
 {
   NS_LOG_FUNCTION (this << &buf);
-  buf.WriteDouble (m_timeStamp.GetSeconds ());
+  buf.WriteU32 (m_timeStamp.GetNanoSeconds ());
 }
 void 
 TimeStampTag::Deserialize (TagBuffer buf)
 {
   NS_LOG_FUNCTION (this << &buf);
-  m_timeStamp = Time ( Seconds(buf.ReadDouble ()));
+  m_timeStamp = Time ( NanoSeconds(buf.ReadU32 ()));
 }
 void 
 TimeStampTag::Print (std::ostream &os) const
