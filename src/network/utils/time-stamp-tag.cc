@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Caleb Bowers <caleb.bowers@nrl.navy.mil>
+ * Author: Caleb Bowers <czb3@georgetown.edu>
  */
 #include "time-stamp-tag.h"
 #include "ns3/log.h"
@@ -51,13 +51,13 @@ void
 TimeStampTag::Serialize (TagBuffer buf) const
 {
   NS_LOG_FUNCTION (this << &buf);
-  buf.WriteU32 (m_timeStamp.GetSeconds ());
+  buf.WriteU64 (m_timeStamp.GetNanoSeconds ());
 }
 void 
 TimeStampTag::Deserialize (TagBuffer buf)
 {
   NS_LOG_FUNCTION (this << &buf);
-  m_timeStamp = Time ( Seconds(buf.ReadU32 ()));
+  m_timeStamp = Time ( NanoSeconds(buf.ReadU64 ()));
 }
 void 
 TimeStampTag::Print (std::ostream &os) const
