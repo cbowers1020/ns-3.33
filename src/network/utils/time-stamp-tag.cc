@@ -36,35 +36,42 @@ TimeStampTag::GetTypeId (void)
   ;
   return tid;
 }
+
 TypeId 
 TimeStampTag::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
+
 uint32_t 
 TimeStampTag::GetSerializedSize (void) const
 {
   NS_LOG_FUNCTION (this);
-  return 4;
+  return 8;
 }
+
 void 
 TimeStampTag::Serialize (TagBuffer buf) const
 {
   NS_LOG_FUNCTION (this << &buf);
-  buf.WriteU32 (m_timeStamp.GetNanoSeconds ());
+  buf.WriteDouble (m_timeStamp.GetSeconds ());
 }
+
 void 
 TimeStampTag::Deserialize (TagBuffer buf)
 {
   NS_LOG_FUNCTION (this << &buf);
-  m_timeStamp = Time (NanoSeconds (buf.ReadU32 ()));
+  m_timeStamp = Time (Seconds (buf.ReadDouble ()));
+  std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
 }
+
 void 
 TimeStampTag::Print (std::ostream &os) const
 {
   NS_LOG_FUNCTION (this << &os);
   os << "TimeStamp=" << m_timeStamp;
 }
+
 TimeStampTag::TimeStampTag ()
   : Tag () 
 {
@@ -76,6 +83,7 @@ TimeStampTag::TimeStampTag (Time timeStamp)
     m_timeStamp (timeStamp)
 {
   std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
+  // std::cout << "m_timeStamp (ns) = " << m_timeStamp.GetNanoSeconds () << std::endl;
   NS_LOG_FUNCTION (this << timeStamp);
 }
 
@@ -83,7 +91,6 @@ void
 TimeStampTag::SetTimeStamp (Time timeStamp)
 {
   NS_LOG_FUNCTION (this << timeStamp);
-
   m_timeStamp = timeStamp;
 }
 
