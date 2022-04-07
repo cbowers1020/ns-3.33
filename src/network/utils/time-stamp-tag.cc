@@ -62,7 +62,7 @@ TimeStampTag::Deserialize (TagBuffer buf)
 {
   NS_LOG_FUNCTION (this << &buf);
   m_timeStamp = Time (Seconds (buf.ReadDouble ()));
-  std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
+  // std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
 }
 
 void 
@@ -82,7 +82,7 @@ TimeStampTag::TimeStampTag (Time timeStamp)
   : Tag (),
     m_timeStamp (timeStamp)
 {
-  std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
+  // std::cout << "m_timeStamp = " << m_timeStamp.GetSeconds () << std::endl;
   // std::cout << "m_timeStamp (ns) = " << m_timeStamp.GetNanoSeconds () << std::endl;
   NS_LOG_FUNCTION (this << timeStamp);
 }
