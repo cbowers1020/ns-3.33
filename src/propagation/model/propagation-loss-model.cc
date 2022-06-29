@@ -848,14 +848,13 @@ MatrixPropagationLossModel::SetLoss (Ptr<MobilityModel> ma, Ptr<MobilityModel> m
 
   if (i == m_loss.end ())
     {
-      // m_loss.insert (std::make_pair (p, loss));
-      m_loss[p] = loss;
+      m_loss.insert (std::make_pair (p, loss));
     }
   else
     {
       i->second = loss;
     }
-
+ 
   if (symmetric)
     {
       SetLoss (mb, ma, loss, false);
